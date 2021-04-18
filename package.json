@@ -6,9 +6,20 @@
   "main": "none",
   "author": "Maksim Yaromin <yaromin.m.y@gmail.com>",
   "scripts": {
-    "format": "prettier '**/*.ts' --ignore-path ./.prettierignore --write && git status",
+    "format": "prettier '**/*.ts' --ignore-path .prettierignore --write && git status",
     "lint": "eslint 'src/**/**.ts' --ignore-pattern 'src/**/*.spec.ts'",
     "lint:fix": "yarn lint -- --fix"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -c .commitlintrc.json -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "lint-staged": {
+    "src/**/*.{ts,json}": [
+      "prettier --ignore-path .prettierignore --write"
+    ]
   },
   "license": "MIT",
   "devDependencies": {
@@ -19,6 +30,8 @@
     "eslint": "7.24.0",
     "eslint-config-prettier": "8.2.0",
     "eslint-plugin-import": "2.22.1",
+    "husky": "6.0.0",
+    "lint-staged": "10.5.4",
     "prettier": "2.2.1",
     "typescript": "4.2.4"
   }
