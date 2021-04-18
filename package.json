@@ -1,0 +1,25 @@
+{
+  "private": true,
+  "name": "@supolka/design",
+  "version": "1.0.0",
+  "description": "PostCSS plugin to build a CSS themes with unique supolka charm.",
+  "main": "none",
+  "author": "Maksim Yaromin <yaromin.m.y@gmail.com>",
+  "scripts": {
+    "format": "prettier '**/*.ts' --ignore-path ./.prettierignore --write && git status",
+    "lint": "eslint 'src/**/**.ts' --ignore-pattern 'src/**/*.spec.ts'",
+    "lint:fix": "yarn lint -- --fix"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@commitlint/cli": "12.1.1",
+    "@commitlint/config-conventional": "12.1.1",
+    "@typescript-eslint/eslint-plugin": "4.22.0",
+    "@typescript-eslint/parser": "4.22.0",
+    "eslint": "7.24.0",
+    "eslint-config-prettier": "8.2.0",
+    "eslint-plugin-import": "2.22.1",
+    "prettier": "2.2.1",
+    "typescript": "4.2.4"
+  }
+}
