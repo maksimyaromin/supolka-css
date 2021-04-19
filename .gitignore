@@ -5,10 +5,6 @@ node_modules/
 /.vscode
 *.code-workspace
 
-# bundle
-src/**/*.d.ts
-src/**/*.js
-
 # misc
 .DS_Store
 npm-debug.log
