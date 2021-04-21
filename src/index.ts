@@ -1,10 +1,18 @@
 import { SupolkaPluginFactory, SupolkaPlugin } from "./types/index";
+import defaultOptions from "./default-options";
+import { getProcessor } from "./core";
+import { resolveOptions } from "./utils/options";
 
-const supolkaPluginFactory: SupolkaPluginFactory = () => {
+const supolkaPluginFactory: SupolkaPluginFactory = (options) => {
+    const getOptions = () => ({
+        ...defaultOptions,
+        ...options
+    });
+    const resolvedOptions = resolveOptions(getOptions);
 
     return {
         postcssPlugin: "supolka-css",
-        plugins: []
+        plugins: [getProcessor(resolvedOptions)]
     };
 };
 
