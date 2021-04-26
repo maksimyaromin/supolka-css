@@ -1,9 +1,6 @@
 import { Root, AtRule } from "postcss";
 import { SupolkaAtRuleProcessor, SupolkaPluginOptions } from "../types";
-import {
-    getAtomicCssAtRuleProcessor,
-    getNormalizeCssAtRuleProcessor
-} from "./at-processors";
+import { getAtomicCssAtRuleProcessor, getNormalizeCssAtRuleProcessor } from "./at-processors";
 import { supolkaAt, normalizeChunk, atomicChunk } from "../constants";
 
 export default function processSupolkaAt(options: SupolkaPluginOptions) {
@@ -16,13 +13,11 @@ export default function processSupolkaAt(options: SupolkaPluginOptions) {
                     processors.push(getAtomicCssAtRuleProcessor(at, options));
                     break;
                 case normalizeChunk:
-                    processors.push(getNormalizeCssAtRuleProcessor(at));
+                    processors.push(getNormalizeCssAtRuleProcessor(at, options));
                     break;
             }
         });
 
-        return Promise.all([
-            ...processors.map(processor => processor())
-        ]) as unknown as Promise<void>;
+        return (Promise.all([...processors.map((processor) => processor())]) as unknown) as Promise<void>;
     };
-};
+}

@@ -4,6 +4,7 @@ var microplugin_fontSize = require('./microplugins/microplugin.font-size.js');
 var postcss = require('postcss');
 var lodash = require('lodash');
 var promises = require('fs/promises');
+var microplugin_extends = require('./microplugins/microplugin.extends.js');
 var postcssFunctions = require('postcss-functions');
 require('postcss-selector-parser');
 require('postcss-nested');
@@ -26,19 +27,38 @@ const options = {
     },
     theme: {
         fontSize: {
-            overline: 10,
-            caption: 13,
-            button: 15,
-            body2: 15,
-            body1: 17,
-            subtitle2: 14,
-            subtitle1: 16,
-            h6: 20,
-            h5: 24,
-            h4: 35,
-            h3: 49,
-            h2: 61,
-            h1: 98
+            overline: microplugin_fontSize.rem `10`,
+            caption: microplugin_fontSize.rem `13`,
+            button: microplugin_fontSize.rem `15`,
+            body2: microplugin_fontSize.rem `15`,
+            body1: microplugin_fontSize.rem `17`,
+            subtitle2: microplugin_fontSize.rem `14`,
+            subtitle1: microplugin_fontSize.rem `16`,
+            h6: microplugin_fontSize.rem `20`,
+            h5: microplugin_fontSize.rem `24`,
+            h4: microplugin_fontSize.rem `35`,
+            h3: microplugin_fontSize.rem `49`,
+            h2: microplugin_fontSize.rem `61`,
+            h1: microplugin_fontSize.rem `98`
+        },
+        extends: {
+            normalize: {
+                html: {
+                    fontSize: (theme) => theme("root.fontSize"),
+                    "-ms-text-size-adjust": "100%",
+                    "-webkit-tap-highlight-color": (theme) => `rgba(${theme("colors.black")}, 0)`,
+                    "-webkit-text-size-adjust": "100%"
+                },
+                body: {
+                    fontSize: (theme) => theme("fontSize.h1")
+                }
+            }
+        },
+        root: {
+            fontSize: 16
+        },
+        colors: {
+            black: "#000000"
         }
     },
     purgeCss: {
@@ -94,7 +114,7 @@ const atomicCssAtRuleProcessor = (at, options) => {
     });
 };
 
-const normalizeCssAtRuleProcessor = (at) => {
+const normalizeCssAtRuleProcessor = (at, options) => {
     return () => __awaiter(void 0, void 0, void 0, function* () {
         const normalizeCss = yield promises.readFile(require.resolve("modern-normalize"), {
             encoding: "utf8"
@@ -102,9 +122,15 @@ const normalizeCssAtRuleProcessor = (at) => {
         const suitCss = yield promises.readFile(require.resolve("suitcss-base/lib/base.css"), {
             encoding: "utf8"
         });
+        const theme = microplugin_fontSize.getTheme(options);
+        const extendingNodes = yield microplugin_extends.creator({
+            theme: (key, defaultOption) => theme(key, defaultOption),
+            key: "normalize"
+        });
         const nodes = [
             ...microplugin_fontSize.parsePlainCss(normalizeCss).nodes,
-            ...microplugin_fontSize.parsePlainCss(suitCss).nodes
+            ...microplugin_fontSize.parsePlainCss(suitCss).nodes,
+            ...extendingNodes
         ];
         at.after(microplugin_fontSize.updateSource(microplugin_fontSize.wrapAt(microplugin_fontSize.cleanComments(nodes), microplugin_fontSize.sectionAt, microplugin_fontSize.normalizeChunk), at.source));
     });
@@ -119,7 +145,7 @@ function processSupolkaAt(options) {
                     processors.push(atomicCssAtRuleProcessor(at, options));
                     break;
                 case microplugin_fontSize.normalizeChunk:
-                    processors.push(normalizeCssAtRuleProcessor(at));
+                    processors.push(normalizeCssAtRuleProcessor(at, options));
                     break;
             }
         });
@@ -130,9 +156,15 @@ function processSupolkaAt(options) {
 }
 
 function processSupolkaFunctions(options) {
+    const theme = microplugin_fontSize.getTheme(options);
     return postcssFunctions__default['default']({
         functions: {
-            theme: microplugin_fontSize.getTheme(options)
+            theme: theme,
+            rem: (px) => {
+                const rootPx = theme("root.fontSize", 16);
+                const rem = px / rootPx;
+                return `${rem}rem`;
+            }
         }
     });
 }

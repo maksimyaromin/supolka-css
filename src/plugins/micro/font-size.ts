@@ -7,14 +7,16 @@ const creator: SupolkaMicroplugin = ({ theme }) => {
     const option = theme("fontSize") as { [key: string]: number | string };
     const transformValue = transformThemeOption("fontSize");
 
-    const css = fromPairs<CssOptions>(map(option, (value, key) => {
-        return [
-            useClassName("font-size", key),
-            {
-                fontSize: transformValue(value)
-            }
-        ]
-    }));
+    const css = fromPairs<CssOptions>(
+        map(option, (value, key) => {
+            return [
+                useClassName("font-size", key),
+                {
+                    fontSize: transformValue(value)
+                }
+            ];
+        })
+    );
 
     return parseCss(css);
 };

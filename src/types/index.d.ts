@@ -38,6 +38,7 @@ export type SupolkaAtRuleProcessorFactory = (at: AtRule, options?: SupolkaPlugin
 export type ThemeFunction = (key: string, defaultOption?: SupolkaPluginOption) => SupolkaPluginOption;
 export interface SupolkaMicropluginOptions {
     theme: ThemeFunction;
+    key?: string;
 }
 export type SupolkaMicroplugin = (options: SupolkaMicropluginOptions) => Promise<Node[]>;
 

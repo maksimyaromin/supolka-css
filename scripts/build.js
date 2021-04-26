@@ -47,6 +47,7 @@ async function buildSupolkaPlugin() {
         dir: "dist",
         exports: "auto",
         chunkFileNames: "microplugins/[name].js",
+        // TODO: fix pattern for chunking microplugins more accurate
         manualChunks: (id) => {
             const match = /plugins\\micro\\(.*)\.ts/i.exec(id);
             
@@ -67,9 +68,9 @@ buildSupolkaPlugin()
         }
 
         return Promise.all([
-            buildCss("atomic", supolkaCss),
+            // buildCss("atomic", supolkaCss),
             buildCss("normalize", supolkaCss),
-            buildCss("supolka", supolkaCss)
+            // buildCss("supolka", supolkaCss)
         ]);
     })
     .then(() => console.log("Done"));

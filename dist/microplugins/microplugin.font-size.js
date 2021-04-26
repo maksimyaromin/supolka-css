@@ -149,6 +149,7 @@ const getTheme = (options) => (key, defaultOption) => {
     const option = getOption(options, ["theme", rootKey, ...keys], defaultOption);
     return transformThemeOption()(option);
 };
+const rem = (px) => `rem(${px})`;
 
 const creator = ({ theme }) => {
     const option = theme("fontSize");
@@ -170,7 +171,9 @@ exports.creator = creator;
 exports.getTheme = getTheme;
 exports.makeComment = makeComment;
 exports.normalizeChunk = normalizeChunk;
+exports.parseCss = parseCss;
 exports.parsePlainCss = parsePlainCss;
+exports.rem = rem;
 exports.removeUnusedMarkers = removeUnusedMarkers;
 exports.removeUnusedStyles = removeUnusedStyles;
 exports.resolveOptions = resolveOptions;

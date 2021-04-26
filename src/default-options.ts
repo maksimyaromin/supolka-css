@@ -1,5 +1,7 @@
 import { SupolkaPluginOptions } from "./types";
 import atomicCss from "./plugins/atomic-css";
+import { rem } from "./utils/options";
+import { common } from "./theme/palette";
 
 const options: SupolkaPluginOptions = {
     plugins: {
@@ -7,30 +9,39 @@ const options: SupolkaPluginOptions = {
     },
     theme: {
         fontSize: {
-            overline: 10,
-            caption: 13,
-            button: 15,
-            body2: 15,
-            body1: 17,
-            subtitle2: 14,
-            subtitle1: 16,
-            h6: 20,
-            h5: 24,
-            h4: 35,
-            h3: 49,
-            h2: 61,
-            h1: 98
+            overline: rem`10`,
+            caption: rem`13`,
+            button: rem`15`,
+            body2: rem`15`,
+            body1: rem`17`,
+            subtitle2: rem`14`,
+            subtitle1: rem`16`,
+            h6: rem`20`,
+            h5: rem`24`,
+            h4: rem`35`,
+            h3: rem`49`,
+            h2: rem`61`,
+            h1: rem`98`
+        },
+        extends: {
+            normalize: {
+                html: {
+                    fontSize: (theme) => theme("root.fontSize"),
+                    "-ms-text-size-adjust": "100%",
+                    "-webkit-tap-highlight-color": (theme) => `rgba(${theme("colors.black")}, 0)`,
+                    "-webkit-text-size-adjust": "100%"
+                },
+                body: {}
+            }
+        },
+        root: {
+            fontSize: 16
+        },
+        colors: {
+            black: common.black
         }
     },
-    purgeCss: {
-        content: [
-            {
-                raw: `<html><body><div class="font-size-overline"></div></body></html>`,
-                extension: "html"
-            }
-        ],
-        preserveHtmlElements: false
-    }
+    purgeCss: false
 };
 
 export default options;

@@ -1,5 +1,3 @@
-import { default as fontSizePlugin } from './micro/font-size';
+import { default as fontSizePlugin } from "./micro/font-size";
 
-export default [
-    fontSizePlugin
-];
+export default [fontSizePlugin];

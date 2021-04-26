@@ -8,6 +8,6 @@ export default function processUnused(options: SupolkaPluginOptions) {
     if (!purge) {
         return removeUnusedMarkers;
     }
-    
+
     return removeUnusedStyles(purge);
-};
+}

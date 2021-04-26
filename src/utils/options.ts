@@ -18,9 +18,9 @@ export const resolveFunctionKeys = (theme: SupolkaTheme, options: SupolkaPluginO
         const value = isPlainObject(theme[key])
             ? resolveFunctionKeys(theme[key] as SupolkaTheme, options)
             : isFunction(theme[key])
-                ? (theme[key] as any)(getTheme(options))
-                : theme[key];
-        
+            ? (theme[key] as any)(getTheme(options))
+            : theme[key];
+
         return defaults({ [key]: value }, resolved);
     }, {});
 };
@@ -32,15 +32,17 @@ export const getOption = (
 ): SupolkaPluginOption | undefined => get(options, key, defaultOption);
 
 export const transformThemeOption = (rootKey: string) => {
-    return (option: SupolkaPluginOption | undefined) => isFunction(option)
-        ? option()
-        : option || "";
-}
+    return (option: SupolkaPluginOption | undefined) => (isFunction(option) ? option() : option || "");
+};
 
-export const getTheme = (options: SupolkaPluginOptions) =>
-    (key: string, defaultOption?: SupolkaPluginOption): SupolkaPluginOption => {
-        const [ rootKey, ...keys ] = toPath(key);
-        const option = getOption(options, [ "theme", rootKey, ...keys ], defaultOption);
+export const getTheme = (options: SupolkaPluginOptions) => (
+    key: string,
+    defaultOption?: SupolkaPluginOption
+): SupolkaPluginOption => {
+    const [rootKey, ...keys] = toPath(key);
+    const option = getOption(options, ["theme", rootKey, ...keys], defaultOption);
 
-        return transformThemeOption(rootKey)(option);
-    }
+    return transformThemeOption(rootKey)(option);
+};
+
+export const rem = (px: TemplateStringsArray) => `rem(${px})`;

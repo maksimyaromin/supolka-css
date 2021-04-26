@@ -1,1 +1,1 @@
-export { default as getProcessor } from './processor';
+export { default as getProcessor } from "./processor";

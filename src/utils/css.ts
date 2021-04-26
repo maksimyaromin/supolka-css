@@ -3,7 +3,7 @@ import { CssOptions, PurgeCssOptions, PurgeCssRawContent } from "../types";
 import postcss, { AtRule, Comment, Node, Root } from "postcss";
 import postcssSelectorParser from "postcss-selector-parser";
 import postcssNested from "postcss-nested";
-import * as postcssJs from "postcss-js"; 
+import * as postcssJs from "postcss-js";
 import purgecss from "@fullhuman/postcss-purgecss";
 import tags from "html-tags";
 import { atomicChunk, normalizeChunk, supolkaAt } from "../constants";
@@ -14,8 +14,7 @@ export const useClassName = (root: string, mod?: string): string => {
 };
 
 export const parseCss = (css: Dictionary<CssOptions>): Promise<Node[]> => {
-    const output = postcss([postcssNested()])
-        .process(css, { parser: postcssJs });
+    const output = postcss([postcssNested()]).process(css, { parser: postcssJs });
 
     return Promise.resolve(output.root.nodes);
 };
@@ -24,8 +23,7 @@ export const parsePlainCss = (input: string): Root => {
     return postcss.parse(input);
 };
 
-export const escapeCommas = (className: string) =>
-    className.replace(/\\,/g, "\\2c ");
+export const escapeCommas = (className: string) => className.replace(/\\,/g, "\\2c ");
 
 export const escapeClassName = (className: string): string => {
     const node = postcssSelectorParser.className({ value: className });
@@ -34,23 +32,18 @@ export const escapeClassName = (className: string): string => {
 
 export const asClass = (className: string): string => `.${className}`;
 
-export const cloneNodes = (nodes: Node[]) =>
-    map(nodes, (node) => node.clone());
+export const cloneNodes = (nodes: Node[]) => map(nodes, (node) => node.clone());
 
 export const wrapAt = (nodes: Node | Node[], atName: string, atValue: string) =>
-    postcss.atRule({ name: atName, params: atValue })
-        .append(cloneNodes(isArray(nodes) ? nodes : [nodes]));
+    postcss.atRule({ name: atName, params: atValue }).append(cloneNodes(isArray(nodes) ? nodes : [nodes]));
 
 export const updateSource = (nodes: AtRule | AtRule[], source?: any) => {
-    return tap(
-        isArray(nodes) ? postcss.root({ nodes }) : nodes,
-        (tree) => tree.walk((node) => (node.source = source))
-    );
+    return tap(isArray(nodes) ? postcss.root({ nodes }) : nodes, (tree) => tree.walk((node) => (node.source = source)));
 };
 
 export const cleanComments = (nodes: Node | Node[]): Node[] => {
-    const root = postcss.root({ nodes: isArray(nodes) ? nodes : [ nodes ] });
-    root.walkComments(comment => {
+    const root = postcss.root({ nodes: isArray(nodes) ? nodes : [nodes] });
+    root.walkComments((comment) => {
         comment.remove();
     });
     return root.nodes;
@@ -64,7 +57,7 @@ export const removeUnusedMarkers = (css: Root): void => {
     css.walkAtRules(supolkaAt, (at) => {
         at.remove();
     });
-    css.walkComments(comment => {
+    css.walkComments((comment) => {
         switch (comment.text.trim()) {
             case `${normalizeChunk} BEGIN`:
             case `${normalizeChunk} END`:
@@ -77,9 +70,9 @@ export const removeUnusedMarkers = (css: Root): void => {
 };
 
 export const removeUnusedStyles = (purge: (string | PurgeCssRawContent)[] | PurgeCssOptions) => {
-    const content = isArray(purge) ? purge : get(purge, "content", []) as string[];
-    const options = isPlainObject(purge) ? omit(purge, [ "content" ]) : {};
-    
+    const content = isArray(purge) ? purge : (get(purge, "content", []) as string[]);
+    const options = isPlainObject(purge) ? omit(purge, ["content"]) : {};
+
     return postcss([
         (css: Root) => {
             css.walkComments((comment) => {
@@ -97,11 +90,11 @@ export const removeUnusedStyles = (purge: (string | PurgeCssRawContent)[] | Purg
         purgecss({
             content,
             defaultExtractor: (content: string) => {
-                const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || []
-                const broadMatchesWithoutTrailingSlash = broadMatches.map((match) => trimEnd(match, '\\'))
+                const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [];
+                const broadMatchesWithoutTrailingSlash = broadMatches.map((match) => trimEnd(match, "\\"));
                 const preserved = broadMatches.concat(broadMatchesWithoutTrailingSlash);
 
-                const safelist = [ ...preserved ];
+                const safelist = [...preserved];
 
                 if (get(options, "preserveHtmlElements", true)) {
                     safelist.push(...tags);
