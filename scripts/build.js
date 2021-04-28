@@ -68,8 +68,8 @@ buildSupolkaPlugin()
         }
 
         return Promise.all([
-            // buildCss("atomic", supolkaCss),
-            buildCss("normalize", supolkaCss),
+            buildCss("atomic", supolkaCss),
+            // buildCss("normalize", supolkaCss),
             // buildCss("supolka", supolkaCss)
         ]);
     })

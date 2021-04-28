@@ -46,29 +46,28 @@ const useClassName = (root, mod) => {
     const className = mod ? `${root}-${mod}` : root;
     return asClass(escapeClassName(className));
 };
-const parseCss = (css) => {
-    const output = postcss__default['default']([postcssNested__default['default']()])
-        .process(css, { parser: postcssJs__namespace });
+function parseCss(css) {
+    const output = postcss__default['default']([postcssNested__default['default']()]).process(css, { parser: postcssJs__namespace });
     return Promise.resolve(output.root.nodes);
-};
+}
 const parsePlainCss = (input) => {
     return postcss__default['default'].parse(input);
 };
-const escapeCommas = (className) => className.replace(/\\,/g, "\\2c ");
+const escapeCommas = (className) => className.replace(/\\,/g, "\\2c");
+const escapeDots = (className) => className.replace(/\./g, "\\2e");
 const escapeClassName = (className) => {
     const node = postcssSelectorParser__default['default'].className({ value: className });
-    return escapeCommas(lodash.get(node, "raws.value", node.value));
+    return escapeDots(escapeCommas(lodash.get(node, "raws.value", node.value)));
 };
 const asClass = (className) => `.${className}`;
 const cloneNodes = (nodes) => lodash.map(nodes, (node) => node.clone());
-const wrapAt = (nodes, atName, atValue) => postcss__default['default'].atRule({ name: atName, params: atValue })
-    .append(cloneNodes(lodash.isArray(nodes) ? nodes : [nodes]));
+const wrapAt = (nodes, atName, atValue) => postcss__default['default'].atRule({ name: atName, params: atValue }).append(cloneNodes(lodash.isArray(nodes) ? nodes : [nodes]));
 const updateSource = (nodes, source) => {
     return lodash.tap(lodash.isArray(nodes) ? postcss__default['default'].root({ nodes }) : nodes, (tree) => tree.walk((node) => (node.source = source)));
 };
 const cleanComments = (nodes) => {
     const root = postcss__default['default'].root({ nodes: lodash.isArray(nodes) ? nodes : [nodes] });
-    root.walkComments(comment => {
+    root.walkComments((comment) => {
         comment.remove();
     });
     return root.nodes;
@@ -80,7 +79,7 @@ const removeUnusedMarkers = (css) => {
     css.walkAtRules(supolkaAt, (at) => {
         at.remove();
     });
-    css.walkComments(comment => {
+    css.walkComments((comment) => {
         switch (comment.text.trim()) {
             case `${normalizeChunk} BEGIN`:
             case `${normalizeChunk} END`:
@@ -110,7 +109,7 @@ const removeUnusedStyles = (purge) => {
         removeUnusedMarkers,
         purgecss__default['default'](Object.assign({ content, defaultExtractor: (content) => {
                 const broadMatches = content.match(/[^<>"'`\s]*[^<>"'`\s:]/g) || [];
-                const broadMatchesWithoutTrailingSlash = broadMatches.map((match) => lodash.trimEnd(match, '\\'));
+                const broadMatchesWithoutTrailingSlash = broadMatches.map((match) => lodash.trimEnd(match, "\\"));
                 const preserved = broadMatches.concat(broadMatchesWithoutTrailingSlash);
                 const safelist = [...preserved];
                 if (lodash.get(options, "preserveHtmlElements", true)) {
@@ -119,6 +118,10 @@ const removeUnusedStyles = (purge) => {
                 return safelist;
             } }, options))
     ]);
+};
+const toRemCss = (px, rootPx = 16) => {
+    const rem = px / rootPx;
+    return `${rem}rem`;
 };
 
 const resolveOptions = (getOptions) => {
@@ -133,40 +136,47 @@ const resolveFunctionKeys = (theme, options) => {
         const value = lodash.isPlainObject(theme[key])
             ? resolveFunctionKeys(theme[key], options)
             : lodash.isFunction(theme[key])
-                ? theme[key](getTheme(options))
+                ? theme[key](getTheme(options, false))
                 : theme[key];
         return lodash.defaults({ [key]: value }, resolved);
     }, {});
 };
 const getOption = (options, key, defaultOption) => lodash.get(options, key, defaultOption);
 const transformThemeOption = (rootKey) => {
-    return (option) => lodash.isFunction(option)
-        ? option()
-        : option || "";
+    if (["fontFamily"].includes(rootKey)) {
+        return (option) => (lodash.isArray(option) ? option.join(", ") : option || "");
+    }
+    return (option) => (lodash.isFunction(option) ? option() : option || "");
 };
-const getTheme = (options) => (key, defaultOption) => {
+const getTheme = (options, useTransformation = true) => (key, defaultOption) => {
     const [rootKey, ...keys] = lodash.toPath(key);
     const option = getOption(options, ["theme", rootKey, ...keys], defaultOption);
-    return transformThemeOption()(option);
+    return useTransformation ? transformThemeOption(rootKey)(option) : option;
 };
 const rem = (px) => `rem(${px})`;
+const spacing = (ratio = 0) => `spacing(${ratio})`;
 
-const creator = ({ theme }) => {
-    const option = theme("fontSize");
-    const transformValue = transformThemeOption();
-    const css = lodash.fromPairs(lodash.map(option, (value, key) => {
+const createAtomicMicroplugin = (options, root, className = root) => {
+    const transformValue = transformThemeOption(root);
+    const css = lodash.fromPairs(lodash.map(options, (value, key) => {
         return [
-            useClassName("font-size", key),
+            useClassName(className, key),
             {
-                fontSize: transformValue(value)
+                [root]: transformValue(value)
             }
         ];
     }));
     return parseCss(css);
 };
 
+const creator = ({ theme }) => {
+    const options = theme("fontSize");
+    return createAtomicMicroplugin(options, "fontSize", "fs");
+};
+
 exports.atomicChunk = atomicChunk;
 exports.cleanComments = cleanComments;
+exports.createAtomicMicroplugin = createAtomicMicroplugin;
 exports.creator = creator;
 exports.getTheme = getTheme;
 exports.makeComment = makeComment;
@@ -178,7 +188,11 @@ exports.removeUnusedMarkers = removeUnusedMarkers;
 exports.removeUnusedStyles = removeUnusedStyles;
 exports.resolveOptions = resolveOptions;
 exports.sectionAt = sectionAt;
+exports.spacing = spacing;
 exports.supolkaAt = supolkaAt;
+exports.toRemCss = toRemCss;
+exports.transformThemeOption = transformThemeOption;
 exports.updateSource = updateSource;
+exports.useClassName = useClassName;
 exports.wrapAt = wrapAt;
 //# sourceMappingURL=microplugin.font-size.js.map

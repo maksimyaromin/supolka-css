@@ -1,5 +1,5 @@
 import { Dictionary, get, map, isArray, tap, isPlainObject, omit, trimEnd } from "lodash";
-import { CssOptions, PurgeCssOptions, PurgeCssRawContent } from "../types";
+import { CssOptions, PurgeCssOptions, PurgeCssRawContent, SupolkaPluginOption } from "../types";
 import postcss, { AtRule, Comment, Node, Root } from "postcss";
 import postcssSelectorParser from "postcss-selector-parser";
 import postcssNested from "postcss-nested";
@@ -13,7 +13,9 @@ export const useClassName = (root: string, mod?: string): string => {
     return asClass(escapeClassName(className));
 };
 
-export const parseCss = (css: Dictionary<CssOptions>): Promise<Node[]> => {
+export function parseCss(css: Dictionary<CssOptions>): Promise<Node[]>;
+export function parseCss(css: { [key: string]: SupolkaPluginOption }): Promise<Node[]>;
+export function parseCss(css: object): Promise<Node[]> {
     const output = postcss([postcssNested()]).process(css, { parser: postcssJs });
 
     return Promise.resolve(output.root.nodes);
@@ -23,11 +25,13 @@ export const parsePlainCss = (input: string): Root => {
     return postcss.parse(input);
 };
 
-export const escapeCommas = (className: string) => className.replace(/\\,/g, "\\2c ");
+export const escapeCommas = (className: string) => className.replace(/\\,/g, "\\2c");
+
+export const escapeDots = (className: string) => className.replace(/\./g, "\\2e");
 
 export const escapeClassName = (className: string): string => {
     const node = postcssSelectorParser.className({ value: className });
-    return escapeCommas(get(node, "raws.value", node.value));
+    return escapeDots(escapeCommas(get(node, "raws.value", node.value)));
 };
 
 export const asClass = (className: string): string => `.${className}`;
@@ -105,4 +109,10 @@ export const removeUnusedStyles = (purge: (string | PurgeCssRawContent)[] | Purg
             ...options
         })
     ]);
+};
+
+export const toRemCss = (px: number, rootPx = 16): string => {
+    const rem = px / rootPx;
+
+    return `${rem}rem`;
 };

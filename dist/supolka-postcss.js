@@ -1,6 +1,10 @@
 'use strict';
 
 var microplugin_fontSize = require('./microplugins/microplugin.font-size.js');
+var microplugin_fontWeight = require('./microplugins/microplugin.font-weight.js');
+var microplugin_fontFamily = require('./microplugins/microplugin.font-family.js');
+var microplugin_margin = require('./microplugins/microplugin.margin.js');
+var microplugin_padding = require('./microplugins/microplugin.padding.js');
 var postcss = require('postcss');
 var lodash = require('lodash');
 var promises = require('fs/promises');
@@ -18,14 +22,75 @@ var postcss__default = /*#__PURE__*/_interopDefaultLegacy(postcss);
 var postcssFunctions__default = /*#__PURE__*/_interopDefaultLegacy(postcssFunctions);
 
 var atomicCss = [
-    microplugin_fontSize.creator
+    microplugin_fontFamily.creator,
+    microplugin_fontSize.creator,
+    microplugin_fontWeight.creator,
+    microplugin_margin.creator,
+    microplugin_padding.creator
 ];
+
+var common = {
+    black: "#000000",
+    white: "#ffffff"
+};
 
 const options = {
     plugins: {
         atomic: atomicCss
     },
     theme: {
+        spacing: {
+            0: microplugin_fontSize.spacing(0),
+            ".5": microplugin_fontSize.spacing(.5),
+            1: microplugin_fontSize.spacing(1),
+            2: microplugin_fontSize.spacing(2),
+            3: microplugin_fontSize.spacing(3),
+            4: microplugin_fontSize.spacing(4),
+            5: microplugin_fontSize.spacing(5),
+            6: microplugin_fontSize.spacing(6),
+            7: microplugin_fontSize.spacing(7),
+            8: microplugin_fontSize.spacing(8),
+            9: microplugin_fontSize.spacing(9),
+            10: microplugin_fontSize.spacing(10),
+            12: microplugin_fontSize.spacing(12),
+            24: microplugin_fontSize.spacing(24)
+        },
+        fontFamily: {
+            sans: [
+                "ui-sans-serif",
+                "system-ui",
+                "-apple-system",
+                "BlinkMacSystemFont",
+                `"Segoe UI"`,
+                "Roboto",
+                `"Helvetica Neue"`,
+                "Arial",
+                `"Noto Sans"`,
+                "sans-serif",
+                `"Apple Color Emoji"`,
+                `"Segoe UI Emoji"`,
+                `"Segoe UI Symbol"`,
+                `"Noto Color Emoji"`
+            ],
+            mono: [
+                "ui-monospace",
+                "SFMono-Regular",
+                "Menlo",
+                "Monaco",
+                "Consolas",
+                `"Liberation Mono"`,
+                `"Courier New"`,
+                "monospace"
+            ],
+            headline: (theme) => ([
+                "Raleway",
+                ...theme("fontFamily.sans")
+            ]),
+            body: (theme) => ([
+                "Lato",
+                ...theme("fontFamily.sans")
+            ])
+        },
         fontSize: {
             overline: microplugin_fontSize.rem `10`,
             caption: microplugin_fontSize.rem `13`,
@@ -41,35 +106,46 @@ const options = {
             h2: microplugin_fontSize.rem `61`,
             h1: microplugin_fontSize.rem `98`
         },
+        fontWeight: {
+            thin: 100,
+            extralight: 200,
+            light: 300,
+            normal: 400,
+            medium: 500,
+            semibold: 600,
+            bold: 700,
+            extrabold: 800,
+            black: 900
+        },
+        margin: (theme) => (Object.assign({ "auto": "auto" }, theme("spacing"))),
+        padding: (theme) => (Object.assign({}, theme("spacing"))),
         extends: {
             normalize: {
                 html: {
-                    fontSize: (theme) => theme("root.fontSize"),
+                    fontSize: (theme) => theme("root.spacing"),
                     "-ms-text-size-adjust": "100%",
                     "-webkit-tap-highlight-color": (theme) => `rgba(${theme("colors.black")}, 0)`,
                     "-webkit-text-size-adjust": "100%"
                 },
                 body: {
-                    fontSize: (theme) => theme("fontSize.h1")
+                    backgroundColor: (theme) => theme("colors.black"),
+                    color: (theme) => theme("colors.white"),
+                    fontFamily: `theme(fontFamily.body)`,
+                    "overflow-y": "scroll",
+                    "overscroll-behavior-y": "none"
                 }
             }
         },
         root: {
-            fontSize: 16
+            spacing: 16,
+            spacingDP: 4
         },
         colors: {
-            black: "#000000"
+            black: common.black,
+            white: common.white
         }
     },
-    purgeCss: {
-        content: [
-            {
-                raw: `<html><body><div class="font-size-overline"></div></body></html>`,
-                extension: "html"
-            }
-        ],
-        preserveHtmlElements: false
-    }
+    purgeCss: false
 };
 
 /*! *****************************************************************************
@@ -101,10 +177,10 @@ const atomicCssAtRuleProcessor = (at, options) => {
     const plugins = lodash.get(options, "plugins.atomic", []);
     const theme = microplugin_fontSize.getTheme(options);
     const execute = () => Promise.all([
-        ...plugins.map(plugin => plugin({
+        ...plugins.map((plugin) => plugin({
             theme: (key, defaultOption) => theme(key, defaultOption)
         }))
-    ]).then(nodes => {
+    ]).then((nodes) => {
         const wrappedNodes = lodash.map(nodes, (node) => microplugin_fontSize.wrapAt(node, microplugin_fontSize.sectionAt, microplugin_fontSize.atomicChunk));
         return lodash.concat([], ...wrappedNodes);
     });
@@ -127,11 +203,7 @@ const normalizeCssAtRuleProcessor = (at, options) => {
             theme: (key, defaultOption) => theme(key, defaultOption),
             key: "normalize"
         });
-        const nodes = [
-            ...microplugin_fontSize.parsePlainCss(normalizeCss).nodes,
-            ...microplugin_fontSize.parsePlainCss(suitCss).nodes,
-            ...extendingNodes
-        ];
+        const nodes = [...microplugin_fontSize.parsePlainCss(normalizeCss).nodes, ...microplugin_fontSize.parsePlainCss(suitCss).nodes, ...extendingNodes];
         at.after(microplugin_fontSize.updateSource(microplugin_fontSize.wrapAt(microplugin_fontSize.cleanComments(nodes), microplugin_fontSize.sectionAt, microplugin_fontSize.normalizeChunk), at.source));
     });
 };
@@ -149,9 +221,7 @@ function processSupolkaAt(options) {
                     break;
             }
         });
-        return Promise.all([
-            ...processors.map(processor => processor())
-        ]);
+        return Promise.all([...processors.map((processor) => processor())]);
     };
 }
 
@@ -161,9 +231,13 @@ function processSupolkaFunctions(options) {
         functions: {
             theme: theme,
             rem: (px) => {
-                const rootPx = theme("root.fontSize", 16);
-                const rem = px / rootPx;
-                return `${rem}rem`;
+                const rootPx = theme("root.spacing", 16);
+                return microplugin_fontSize.toRemCss(px, rootPx);
+            },
+            spacing: (ratio) => {
+                const rootPx = theme("root.spacing", 16);
+                const rootDP = theme("root.spacingDP", 4);
+                return microplugin_fontSize.toRemCss(ratio * rootDP, rootPx);
             }
         }
     });

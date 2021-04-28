@@ -7,7 +7,7 @@ import {
     Node
 } from "postcss";
 
-export type SupolkaPluginOption = number | string | object;
+export type SupolkaPluginOption = number | string | object | (number | string)[];
 export interface SupolkaTheme {
     [key: string]: SupolkaPluginOption
 }
